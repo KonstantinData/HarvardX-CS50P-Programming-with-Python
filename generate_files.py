@@ -1,68 +1,68 @@
 import os
 
-# Zielordner
-folder = "04_exceptions/shorts/handling_exceptions/raising_exceptions"
+# Basisordner für SHORTS
+base_folder = "05_libraries/shorts/mudules_and_packages"
+os.makedirs(base_folder, exist_ok=True)
 
-# Ordner erstellen
-os.makedirs(folder, exist_ok=True)
+# Unterordner museum
+museum_folder = os.path.join(base_folder, "museum")
+os.makedirs(museum_folder, exist_ok=True)
 
+# Dateien aus dem PDF
 files = {
-    "pace0.py": """def main():
-    pace = get_pace(miles=26.2, minutes=180)
-    print(f"You need to run each mile in {round(pace, 2)} minutes.")
+    "search.py": """from museum.artwork import get_artwork
+from museum.artists import get_artists
 
 
-def get_pace(miles, minutes):
-    return minutes / miles
-
-
-main()
-""",
-    "pace1.py": """def main():
-    pace = get_pace(miles=26.2, minutes=0)
-    print(f"You need to run each mile in {round(pace, 2)} minutes.")
-
-
-def get_pace(miles, minutes):
-    if not minutes > 0:
-        raise Exception()
-    return minutes / miles
+def main():
+    artist = input("Artist: ")
+    artworks = get_artists(query=artist, limit=3)
+    for artwork in artworks:
+        print(f"* {artwork}")
 
 
 main()
 """,
-    "pace2.py": """def main():
-    pace = get_pace(miles=26.2, minutes=0)
-    print(f"You need to run each mile in {round(pace, 2)} minutes.")
+    "museum/__init__.py": """""",
+    "museum/artists.py": """import requests
 
+def get_artists(query, limit):
+    try:
+        response = requests.get(
+            "https://api.artic.edu/api/v1/agents/search", {"q": query, "limit": limit}
+        )
+        response.raise_for_status()
+    except requests.HTTPError:
+        return []
 
-def get_pace(miles, minutes):
-    if not minutes > 0:
-        raise ValueError()
-    return minutes / miles
-
-
-main()
+    content = response.json()
+    return [artists["title"] for artists in content["data"]]
 """,
-    "pace3.py": """def main():
-    pace = get_pace(miles=26.2, minutes=0)
-    print(f"You need to run each mile in {round(pace, 2)} minutes.")
+    "museum/artwork.py": """import requests
 
+def get_artwork(query, limit):
+    try:
+        response = requests.get(
+            "https://api.artic.edu/api/v1/artworks/search", {"q": query, "limit": limit}
+        )
+        response.raise_for_status()
+    except requests.HTTPError:
+        return []
 
-def get_pace(miles, minutes):
-    if not minutes > 0:
-        raise ValueError("Minutes must be greater than 0")
-    return minutes / miles
-
-
-main()
+    content = response.json()
+    return [artwork["title"] for artwork in content["data"]]
 """,
 }
 
 # Dateien erzeugen
 for filename, content in files.items():
-    path = os.path.join(folder, filename)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(content)
+    full_path = os.path.join(base_folder, filename)
 
-print("Alle Raising-Exception-Dateien wurden erzeugt.")
+    # Subdir für museum/ Dateien korrekt erzeugen
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+    with open(full_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    print(f"Datei erzeugt: {full_path}")
+
+print("Alle DTO-Shorts wurden erfolgreich erzeugt.")
